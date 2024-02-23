@@ -1,5 +1,6 @@
 --title=Joe Allen
---input=input_pdf
+--input_directory=input_pdf
 --output=output_epub\Joe_Allen.epub
 --command=directory
 --cover_image=input_pdf\cover.jpg
+--filter=Allen

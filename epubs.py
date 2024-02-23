@@ -5,8 +5,8 @@ import pypdf
 from ebooklib import epub
 
 class MyPDF:
-    def __init__(self, args):
-        self.reader = pypdf.PdfReader(args.input)
+    def __init__(self, filepath):
+        self.reader = pypdf.PdfReader(filepath)
 
     def extract_text(self):
         chapter_text = ""
@@ -31,7 +31,7 @@ class MyPDF:
 
             chapter_text = chapter_text + page_text
 
-        print(chapter_text)
+        #print(chapter_text)
         return chapter_text
 
 
@@ -41,16 +41,11 @@ class MyBook:
         self.book.set_title(args.title)
         self.book.set_language("en")
         self.book.add_author("NASA Oral Histories")
-        self.book.set_cover(args.cover_image, "NASA Oral Histories")
 
         # create image from the local image
         image_content = open(args.cover_image, "rb").read()
-        self.img = epub.EpubImage(
-            uid="image_1",
-            file_name="static/cover.jpg",
-            media_type="image/gif",
-            content=image_content,
-        )
+        self.book.set_cover("cover_image.jpg", image_content)
+
         self.spine = ['nav']
         self.toc = []
 
@@ -62,6 +57,7 @@ class MyBook:
 
         c = epub.EpubHtml(title=title, file_name=filename, lang="en")
         c.content = (
+                "<p><img src='cover_image.jpg' alt='Cover Image'/></p>"
                 "<h1>" + title + "</h1>"
                 "<p>" + chapter_text + "</p>"
         )
@@ -75,7 +71,6 @@ class MyBook:
     def save(self, args):
         # generate Table Of Contents
         self.book.toc = tuple(self.toc)
-        self.book.add_item(self.img)
 
         # add default NCX and Nav file
         self.book.add_item(epub.EpubNcx())
@@ -100,17 +95,44 @@ class MyBook:
         epub.write_epub(args.output, self.book, {})
 
 #========================================================================
-def pdf_to_epub(args):
+def single_pdf_to_epub(args):
 
     # open the pdf and extract the text
-    myPDF = MyPDF(args)
+    myPDF = MyPDF(args.input)
     chapter_text = myPDF.extract_text()
 
     # create the epub
     myBook = MyBook(args)
 
     # add the extracted text from the pdf as a chapter
-    myBook.add_chapter(args.title, chapter_text)
+    filename = os.path.basename(args.input)
+    subtitle = os.path.splitext(filename)[0]
+    myBook.add_chapter(subtitle, chapter_text)
+
+    # save the epub file
+    myBook.save(args)
+
+def directory_with_pdf_to_epub(args):
+
+    # create the epub
+    myBook = MyBook(args)
+
+    # Iterate over all files in the directory
+    for filename in os.listdir(args.input_directory):
+        filepath = os.path.join(args.input_directory, filename)
+        subtitle = os.path.splitext(filename)[0]
+        extention = os.path.splitext(filename)[1]
+
+
+        # open the pdf and extract the text
+        if extention == '.pdf':
+            if args.filter in filename:
+                print(f'converting {filepath}...')
+                myPDF = MyPDF(filepath)
+                chapter_text = myPDF.extract_text()
+
+                subtitle = os.path.splitext(filename)[0]
+                myBook.add_chapter(subtitle, chapter_text)
 
     # save the epub file
     myBook.save(args)
@@ -151,6 +173,10 @@ def parse_args():
                         default=None,
                         help="input pdf file or directory to convert to epub",
                         )
+    parser.add_argument("--input_directory",
+                        default=None,
+                        help="directory that contains the pdf's to convert to epub",
+                        )
     parser.add_argument("--output", "-o",
                         default=None,
                         help="output epub file",
@@ -162,6 +188,10 @@ def parse_args():
     parser.add_argument("--cover_image",
                         default=None,
                         help="Cover image of the epub",
+                        )
+    parser.add_argument("--filter",
+                        default=None,
+                        help="All pdf's with this substring in the name will be read",
                         )
     parser.add_argument("--command", "-c",
                         default="single_file",
@@ -186,6 +216,10 @@ if __name__ == '__main__':
         print('Copyright (C) 2024 - Nico Vermaas. This program comes with ABSOLUTELY NO WARRANTY;')
         sys.exit(0)
 
-
+    # convert a single pdf to a single epub
     if args.command == 'single_file':
-        pdf_to_epub(args)
+        single_pdf_to_epub(args)
+
+    # convert a directory with pdf's to a single epub
+    if args.command == 'directory':
+        directory_with_pdf_to_epub(args)
