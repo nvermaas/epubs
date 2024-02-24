@@ -1,0 +1,9 @@
+--title=Joe Allen
+--input_directory=input
+--output=output\Joe_Allen.epub
+--command=directory
+--cover_image=input\cover.jpg
+--filter=Allen
+--lf_to_br
+--cut_page_header
+--cut_page_footer

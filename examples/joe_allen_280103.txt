@@ -1,5 +1,0 @@
---title=Joe Allen - 28 Januari 2003
---input=input_pdf\AllenJP_1-28-03.pdf
---output=output_epub\AllenJP_1-28-03.epub
---command=single_file
---cover_image=input_pdf\cover.jpg

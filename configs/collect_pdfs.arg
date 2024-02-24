@@ -1,0 +1,2 @@
+--output=download
+--command=collect_pdfs

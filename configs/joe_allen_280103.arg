@@ -1,0 +1,8 @@
+--title=Joe Allen - 28 Januari 2003
+--input=astronauts\read\AllenJP_1-28-03.pdf
+--output=output\AllenJP_1-28-03.epub
+--command=single_file
+--cover_image=input\cover.jpg
+--lf_to_br
+--cut_page_header
+--cut_page_footer

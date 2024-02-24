@@ -1,0 +1,1 @@
+python epubs.py --parfile configs\collect_pdfs.arg

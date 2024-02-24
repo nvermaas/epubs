@@ -1,0 +1,8 @@
+--title=Oral Histories
+--input_directory=input
+--output=output\all_oral_histories.epub
+--command=directory
+--cover_image=input\cover.jpg
+--cut_page_header
+--cut_page_footer
+--lf_to_br

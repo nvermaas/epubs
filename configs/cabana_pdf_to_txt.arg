@@ -1,0 +1,7 @@
+--title=Cabana
+--conversion=pdf_to_txt
+--input_directory=input
+--output=output\cabana.txt
+--command=directory
+--cover_image=input\cover.jpg
+--filter=Cabana

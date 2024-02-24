@@ -1,0 +1,9 @@
+--title=Cabana
+--input_directory=input
+--output=output\Cabana.epub
+--command=directory
+--cover_image=input\cover.jpg
+--filter=Cabana
+--lf_to_br
+--cut_page_header
+--cut_page_footer
