@@ -1,0 +1,9 @@
+--title=Verre Reizen
+--subtitle=Mijn verre reizen
+--author=Nico Vermaas
+--conversion=html_to_epub
+--input_directory=my_trips
+--output=output\my_trips.epub
+--command=directory
+--cover_image=my_trips\cover_image.jpg
+--css=my_trips\mystyle.css

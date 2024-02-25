@@ -40,33 +40,63 @@ class MyPDF:
         #print(chapter_text)
         return chapter_text
 
+class MyHTM:
+    def __init__(self, filepath, args):
+        self.filepath = filepath
+        self.args = args
+
+    def extract_text(self):
+
+        with open(self.filepath, 'r') as file:
+            # Read the entire file content into a string
+            file_content = file.read()
+
+        return file_content
+
 
 class MyBook:
     def __init__(self, args):
         self.book = epub.EpubBook()
         self.book.set_title(args.title)
         self.book.set_language("en")
-        self.book.add_author("NASA Oral Histories")
+        self.book.add_author(args.author)
 
         # create image from the local image
         image_content = open(args.cover_image, "rb").read()
         self.book.set_cover("cover_image.jpg", image_content)
 
-        self.spine = ['nav']
+        cover = epub.EpubHtml(title=args.title, file_name="chapter_0.xhtml" , lang="en")
+        cover.content = (
+                "<p><img src='cover_image.jpg' alt='Cover Image'/></p>"
+        )
+        self.book.add_item(cover)
+
+        self.spine = [cover,'nav']
         self.toc = []
 
-    def add_chapter(self, title, chapter_text):
+    def add_chapter(self, title, chapter_text, chapter_image=None):
 
         # create chapter
-        count = len(self.spine)
+        count = len(self.spine)-1
         filename = f"chapter_{count}.xhtml"
 
         c = epub.EpubHtml(title=title, file_name=filename, lang="en")
-        c.content = (
-                "<p><img src='cover_image.jpg' alt='Cover Image'/></p>"
-                "<h1>" + title + "</h1>"
-                "<p>" + chapter_text + "</p>"
-        )
+        if chapter_image:
+            image_content = open(chapter_image, 'rb').read()
+            img = epub.EpubImage(uid=chapter_image, file_name=chapter_image, media_type='image/gif',content=image_content)
+            self.book.add_item(img)
+
+            c.content = (
+                    "<p><img src='" + chapter_image+"' alt='Cover Image'/></p>"
+                    "<h1>" + title + "</h1>"
+                    "<p>" + chapter_text + "</p>"
+            )
+        else:
+            c.content = (
+
+                    "<h1>" + title + "</h1>"
+                    "<p>" + chapter_text + "</p>"
+            )
         self.book.add_item(c)
         self.spine.append(c)
 
@@ -83,10 +113,16 @@ class MyBook:
         self.book.add_item(epub.EpubNav())
 
         # define CSS style
-        style = "BODY {color: white;}"
+        if args.css!=None:
+            with open(args.css, 'r') as file:
+                # Read the entire file content into a string
+                style = file.read()
+        else:
+            style = "BODY {color: white;}"
+
         nav_css = epub.EpubItem(
             uid="style_nav",
-            file_name="style/nav.css",
+            file_name="mystyle.css",
             media_type="text/css",
             content=style,
         )
@@ -99,6 +135,7 @@ class MyBook:
 
         # write to the file
         epub.write_epub(args.output, self.book, {})
+
 
 #========================================================================
 def single_pdf_to_epub(args):
@@ -119,6 +156,7 @@ def single_pdf_to_epub(args):
     # save the epub file
     myBook.save(args)
     print(f'saved as {args.output}')
+
 
 def directory_with_pdf_to_epub(args):
 
@@ -145,6 +183,37 @@ def directory_with_pdf_to_epub(args):
     myBook.save(args)
     print(f'saved as {args.output}')
 
+
+def directory_with_html_to_epub(args):
+
+    # create the epub
+    myBook = MyBook(args)
+
+    # Iterate over all files in the directory
+    for filename in os.listdir(args.input_directory):
+        filepath = os.path.join(args.input_directory, filename)
+
+        extention = os.path.splitext(filename)[1]
+
+        # open the pdf and extract the text
+        if extention == '.htm':
+            if args.filter.upper() in filename.upper():
+                print(f'converting {filepath}...')
+                myHTM = MyHTM(filepath, args)
+                chapter_text = myHTM.extract_text()
+
+                subtitle = os.path.splitext(filename)[0]
+
+                # if a jpg exists with the same basename as the htm, then add it as chapter image
+                chapter_image = os.path.splitext(filepath)[0] + '.jpg'
+                if os.path.exists(chapter_image):
+                    myBook.add_chapter(subtitle, chapter_text, chapter_image)
+                else:
+                    myBook.add_chapter(subtitle, chapter_text)
+
+    # save the epub file
+    myBook.save(args)
+    print(f'saved as {args.output}')
 
 def directory_with_pdf_to_txt(args):
 
@@ -303,8 +372,20 @@ def parse_args():
                         help="output epub file",
                         )
     parser.add_argument("--title",
-                        default="My book title",
-                        help="Title of the epub",
+                        default="",
+                        help="Title of the book",
+                        )
+    parser.add_argument("--subtitle",
+                        default="",
+                        help="Subtitle of the book",
+                        )
+    parser.add_argument("--author",
+                        default="Nico Vermaas",
+                        help="author",
+                        )
+    parser.add_argument("--css",
+                        default=None,
+                        help="path to a css file that can be applied in the epub (optional)",
                         )
     parser.add_argument("--cover_image",
                         default=None,
@@ -316,7 +397,7 @@ def parse_args():
                         )
     parser.add_argument("--conversion",
                         default="pdf_to_epub",
-                        help="pdf_to_epub, pdf_to_txt, txt_to_epub",
+                        help="pdf_to_epub, pdf_to_txt, txt_to_epub, html_to_epub",
                         )
     parser.add_argument("--lf_to_br",
                         default=False,
@@ -380,3 +461,7 @@ if __name__ == '__main__':
         elif args.conversion == 'pdf_to_txt':
             # convert a directory with pdf's to a single txt
             directory_with_pdf_to_txt(args)
+
+        elif args.conversion == 'html_to_epub':
+            # convert a directory with pdf's to a single txt
+            directory_with_html_to_epub(args)

@@ -1,6 +1,7 @@
---title=Oral Histories
+--title=NASA Oral Histories (2012 - 2019)
+--author=NASA
 --input_directory=input
---output=output\all_oral_histories.epub
+--output=output\nasa_oral_histories.epub
 --command=directory
 --cover_image=input\cover.jpg
 --cut_page_header

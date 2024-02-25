@@ -1,0 +1,9 @@
+--title=Trektochten
+--subtitle=Mijn trektochten en kanotochten
+--author=Nico Vermaas
+--conversion=html_to_epub
+--input_directory=my_hikes
+--output=output\my_hikes.epub
+--command=directory
+--cover_image=my_hikes\cover_image.jpg
+--css=my_hikes\mystyle.css
