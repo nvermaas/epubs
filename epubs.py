@@ -67,7 +67,7 @@ class MyBook:
 
         cover = epub.EpubHtml(title=args.title, file_name="chapter_0.xhtml" , lang="en")
         cover.content = (
-                "<p><img src='cover_image.jpg' alt='Cover Image'/></p>"
+                "<p><img src='cover_image.jpg' width='1000px' alt='Cover Image'/></p>"
         )
         self.book.add_item(cover)
 
@@ -83,18 +83,21 @@ class MyBook:
         c = epub.EpubHtml(title=title, file_name=filename, lang="en")
         if chapter_image:
             image_content = open(chapter_image, 'rb').read()
-            img = epub.EpubImage(uid=chapter_image, file_name=chapter_image, media_type='image/gif',content=image_content)
+
+            filename_in_epub = os.path.split(chapter_image)[1]
+            img = epub.EpubImage(uid=filename_in_epub.lower(), file_name=filename_in_epub.lower(), content=image_content)
+            #img = epub.EpubImage(uid=chapter_image.lower(), file_name=chapter_image.lower(), content=image_content)
             self.book.add_item(img)
 
             c.content = (
-                    "<p><img src='" + chapter_image+"' alt='Cover Image'/></p>"
-                    "<h1>" + title + "</h1>"
+                    "<p><img src='" + filename_in_epub.lower()+"' width='1000px' alt='Cover Image'/></p>"
+                    "<h2>" + title + "</h2>"
                     "<p>" + chapter_text + "</p>"
             )
         else:
             c.content = (
 
-                    "<h1>" + title + "</h1>"
+                    "<h2>" + title + "</h2>"
                     "<p>" + chapter_text + "</p>"
             )
         self.book.add_item(c)
@@ -201,7 +204,6 @@ def directory_with_html_to_epub(args):
                 print(f'converting {filepath}...')
                 myHTM = MyHTM(filepath, args)
                 chapter_text = myHTM.extract_text()
-
                 subtitle = os.path.splitext(filename)[0]
 
                 # if a jpg exists with the same basename as the htm, then add it as chapter image
